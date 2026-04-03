@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design System | Basma Summit</title>
+    <meta name="description" content="Design system for Basma summit: color tokens, typography, layout rhythm, components, RTL and accessibility guidelines." />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script defer src="assets/js/site.js"></script>
+  </head>
+
+  <body>
+    <div data-site-header></div>
+
+    <main id="main-content">
+      <section class="page-hero section-tight">
+        <div class="container stack reveal">
+          <span class="eyebrow">Design System</span>
+          <h1 class="section-title">نظام التصميم</h1>
+          <p class="section-subtitle">
+            منظومة بصرية وتجريبية موحدة لبناء تجربة فاخرة ومتسقة عبر جميع صفحات بصمة.
+          </p>
+        </div>
+      </section>
+
+      <section class="section-tight">
+        <div class="container stack reveal">
+          <h2 class="section-title">1) الألوان</h2>
+          <div class="grid-4">
+            <article class="card" style="background: #04060d;">
+              <h3 class="card-title">Midnight Base</h3>
+              <p>#04060D</p>
+            </article>
+            <article class="card" style="background: #0b1220;">
+              <h3 class="card-title">Deep Navy</h3>
+              <p>#0B1220</p>
+            </article>
+            <article class="card" style="background: #c9a96b; color: #111;">
+              <h3 class="card-title">Accent Gold</h3>
+              <p>#C9A96B</p>
+            </article>
+            <article class="card" style="background: #47bcb6; color: #081018;">
+              <h3 class="card-title">Accent Teal</h3>
+              <p>#47BCB6</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-tight">
+        <div class="container split">
+          <article class="card reveal">
+            <h2 class="card-title">2) Typography</h2>
+            <p style="font-size: 2.1rem; font-weight: 700;">Hero Heading / العنوان الرئيسي</p>
+            <p style="font-size: 1.45rem; font-weight: 600; margin-top: 0.9rem;">Section Heading / عنوان القسم</p>
+            <p style="margin-top: 0.9rem;">Body / نص المحتوى الأساسي بمقروئية عالية وتباعد مريح.</p>
+            <div class="badge-row" style="margin-top: 1rem;">
+              <span class="badge">Arabic: IBM Plex Sans Arabic</span>
+              <span class="badge">English: Inter</span>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <h2 class="card-title">3) Layout Rhythm</h2>
+            <ul class="ticket-benefits">
+              <li>Container width: 1240px max</li>
+              <li>Section spacing: 64px - 144px responsive</li>
+              <li>Grid: 12-like flexible with 2/3/4 columns</li>
+              <li>Large margins inspired by luxury brand systems</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-tight">
+        <div class="container stack reveal">
+          <h2 class="section-title">4) Components</h2>
+
+          <article class="card">
+            <h3 class="card-title">Buttons</h3>
+            <div class="btn-row">
+              <button class="btn btn-primary" type="button">Primary</button>
+              <button class="btn btn-secondary" type="button">Secondary</button>
+              <button class="btn btn-ghost" type="button">Ghost</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title">Cards</h3>
+            <div class="grid-3">
+              <div class="speaker-card card-body">
+                <h4>Speaker Card</h4>
+                <p>اسم المتحدثة + المنصب + الاهتمام.</p>
+              </div>
+              <div class="award-card card-body">
+                <h4>Award Card</h4>
+                <p>اسم الفئة + وصف موجز.</p>
+              </div>
+              <div class="ticket-card" style="padding: 1.2rem;">
+                <h4>Ticket Card</h4>
+                <p>الفئة + السعر + المزايا.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title">Tabs (Agenda Filters)</h3>
+            <div class="filter-row">
+              <button class="tab-btn active" type="button">All</button>
+              <button class="tab-btn" type="button">Policy</button>
+              <button class="tab-btn" type="button">Innovation</button>
+              <button class="tab-btn" type="button">Awards</button>
+            </div>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title">Modal + Carousel</h3>
+            <p>
+              Speaker modal, gallery lightbox, and sponsor carousel are implemented globally in
+              <code>assets/js/site.js</code> and reusable across all pages.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-tight">
+        <div class="container split">
+          <article class="card reveal">
+            <h2 class="card-title">5) RTL Rules</h2>
+            <ul class="ticket-benefits">
+              <li>Direction: rtl globally with logical CSS properties.</li>
+              <li>Text alignment and spacing verified in cards, nav, forms, and tables.</li>
+              <li>English labels remain readable without breaking Arabic flow.</li>
+            </ul>
+          </article>
+
+          <article class="card reveal">
+            <h2 class="card-title">6) Accessibility & Motion</h2>
+            <ul class="ticket-benefits">
+              <li>WCAG AA-oriented contrast pairs.</li>
+              <li>Keyboard focus states for links, buttons, and form controls.</li>
+              <li>Reduced-motion support for reveal/counter/carousel interactions.</li>
+              <li>Semantic structure and alt-text-ready image system.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div data-site-footer></div>
+  </body>
+</html>
