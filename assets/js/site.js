@@ -1,19 +1,81 @@
-const pages = [
-  { href: 'index.html', label: 'الرئيسية' },
-  { href: 'about.html', label: 'عن بصمة' },
-  { href: 'archive.html', label: 'أرشيف بصمة 1' },
-  { href: 'agenda.html', label: 'الأجندة' },
-  { href: 'speakers.html', label: 'المتحدثات' },
-  { href: 'awards.html', label: 'الجوائز' },
-  { href: 'tickets.html', label: 'التذاكر' },
-  { href: 'sponsors.html', label: 'الرعاة' },
-  { href: 'gallery.html', label: 'المعرض' },
-  { href: 'team.html', label: 'الفريق' },
-  { href: 'contact.html', label: 'تواصل معنا' },
-  { href: 'faq.html', label: 'الأسئلة الشائعة' }
+const primaryPages = [
+  { key: 'index', hrefAr: 'index.html', hrefEn: 'index-en.html', labelAr: 'الرئيسية', labelEn: 'Home' },
+  { key: 'about', hrefAr: 'about.html', hrefEn: 'about-en.html', labelAr: 'من نحن', labelEn: 'About Us' },
+  { key: 'services', hrefAr: 'services.html', hrefEn: 'services-en.html', labelAr: 'الخدمات', labelEn: 'Services' },
+  { key: 'events', hrefAr: 'events.html', hrefEn: 'events-en.html', labelAr: 'فعاليات القمة', labelEn: 'Events' },
+  {
+    key: 'media-center',
+    hrefAr: 'media-center.html',
+    hrefEn: 'media-center-en.html',
+    labelAr: 'المركز الإعلامي',
+    labelEn: 'Media Center'
+  },
+  { key: 'tickets', hrefAr: 'tickets.html', hrefEn: 'tickets-en.html', labelAr: 'التذاكر', labelEn: 'Tickets' },
+  { key: 'team', hrefAr: 'team.html', hrefEn: 'team-en.html', labelAr: 'الفريق', labelEn: 'Team' },
+  { key: 'contact', hrefAr: 'contact.html', hrefEn: 'contact-en.html', labelAr: 'اتصل بنا', labelEn: 'Contact Us' }
 ];
 
+const secondaryPages = [
+  { key: 'agenda', hrefAr: 'agenda.html', labelAr: 'الأجندة', labelEn: 'Agenda' },
+  { key: 'speakers', hrefAr: 'speakers.html', labelAr: 'المتحدثات', labelEn: 'Speakers' },
+  { key: 'awards', hrefAr: 'awards.html', labelAr: 'الجوائز', labelEn: 'Awards' },
+  { key: 'sponsors', hrefAr: 'sponsors.html', labelAr: 'الرعاة', labelEn: 'Sponsors' },
+  { key: 'archive', hrefAr: 'archive.html', labelAr: 'أرشيف بصمة 1', labelEn: 'Basma 1 Archive' },
+  { key: 'gallery', hrefAr: 'gallery.html', labelAr: 'المعرض', labelEn: 'Gallery' },
+  { key: 'faq', hrefAr: 'faq.html', labelAr: 'الأسئلة الشائعة', labelEn: 'FAQ' }
+];
+
+const bilingualBases = new Set(['index', 'about', 'services', 'events', 'media-center', 'tickets', 'team', 'contact']);
 const THEME_STORAGE_KEY = 'basma-theme';
+const BRAND_LOGO_SRC = 'assets/img/basma-mark.png';
+
+function currentFile() {
+  const path = window.location.pathname.split('/').pop();
+  return path || 'index.html';
+}
+
+function pageBase(file = currentFile()) {
+  if (file === '') return 'index';
+  return file.replace(/-en\.html$/, '').replace(/\.html$/, '');
+}
+
+function currentLanguage() {
+  return /-en\.html$/.test(currentFile()) ? 'en' : 'ar';
+}
+
+function isEnglish() {
+  return currentLanguage() === 'en';
+}
+
+function t(ar, en) {
+  return isEnglish() ? en : ar;
+}
+
+function localizedHref(base, language = currentLanguage()) {
+  if (language === 'en' && bilingualBases.has(base)) {
+    return `${base}-en.html`;
+  }
+  return `${base}.html`;
+}
+
+function alternateLanguageHref() {
+  const base = pageBase();
+  const language = currentLanguage();
+
+  if (language === 'ar') {
+    return bilingualBases.has(base) ? `${base}-en.html` : 'index-en.html';
+  }
+
+  return `${base}.html`;
+}
+
+function isCurrent(href) {
+  const file = currentFile();
+  if (href === 'index.html' && (file === '' || file === 'index.html')) {
+    return true;
+  }
+  return file === href;
+}
 
 function getPreferredTheme() {
   try {
@@ -39,6 +101,36 @@ function persistTheme(theme) {
   }
 }
 
+function applyLanguageFromPage() {
+  const lang = currentLanguage();
+  document.documentElement.setAttribute('data-lang', lang);
+  document.documentElement.setAttribute('lang', lang === 'en' ? 'en' : 'ar');
+  document.documentElement.setAttribute('dir', lang === 'en' ? 'ltr' : 'rtl');
+}
+
+function ensureBrandAssets() {
+  const head = document.head;
+  if (!head) return;
+
+  const links = [
+    { rel: 'icon', type: 'image/png' },
+    { rel: 'shortcut icon', type: 'image/png' },
+    { rel: 'apple-touch-icon' }
+  ];
+
+  links.forEach(({ rel, type }) => {
+    let link = head.querySelector(`link[rel="${rel}"]`);
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = rel;
+      head.appendChild(link);
+    }
+
+    link.href = BRAND_LOGO_SRC;
+    if (type) link.type = type;
+  });
+}
+
 function syncThemeToggleButton() {
   const button = document.querySelector('[data-theme-toggle]');
   if (!button) return;
@@ -50,59 +142,59 @@ function syncThemeToggleButton() {
     icon.textContent = isLight ? '☾' : '☀';
   }
 
-  button.setAttribute('aria-label', isLight ? 'تفعيل الوضع الداكن' : 'تفعيل الوضع الفاتح');
-  button.setAttribute('title', isLight ? 'الوضع الداكن' : 'الوضع الفاتح');
-}
-
-function currentFile() {
-  const path = window.location.pathname.split('/').pop();
-  return path || 'index.html';
-}
-
-function isCurrent(href) {
-  const file = currentFile();
-  if (href === 'index.html' && (file === '' || file === 'index.html')) {
-    return true;
-  }
-  return file === href;
+  button.setAttribute('aria-label', isLight ? t('تفعيل الوضع الداكن', 'Enable dark mode') : t('تفعيل الوضع الفاتح', 'Enable light mode'));
+  button.setAttribute('title', isLight ? t('الوضع الداكن', 'Dark mode') : t('الوضع الفاتح', 'Light mode'));
 }
 
 function buildHeader() {
   const headerSlot = document.querySelector('[data-site-header]');
   if (!headerSlot) return;
 
-  const navLinks = pages
-    .map(
-      (page) =>
-        `<a href="${page.href}" ${isCurrent(page.href) ? 'aria-current="page"' : ''}>${page.label}</a>`
-    )
+  const language = currentLanguage();
+
+  const navLinks = primaryPages
+    .map((page) => {
+      const href = language === 'en' ? page.hrefEn : page.hrefAr;
+      const label = language === 'en' ? page.labelEn : page.labelAr;
+      return `<a href="${href}" ${isCurrent(href) ? 'aria-current="page"' : ''}>${label}</a>`;
+    })
     .join('');
 
   headerSlot.innerHTML = `
-    <a class="skip-link" href="#main-content">تخطي إلى المحتوى</a>
+    <a class="skip-link" href="#main-content">${t('تخطي إلى المحتوى', 'Skip to content')}</a>
     <header class="top-nav" role="banner">
       <div class="container nav-inner">
-        <a class="brand" href="index.html" aria-label="Basma Summit home">
-          <span class="brand-mark" aria-hidden="true"></span>
-          <span>بصمة | Basma Summit</span>
+        <a class="brand" href="${localizedHref('index')}" aria-label="${t('العودة للصفحة الرئيسية', 'Back to homepage')}">
+          <img class="brand-logo" src="${BRAND_LOGO_SRC}" alt="${t('شعار بصمة', 'Basma logo')}" width="30" height="42" decoding="async" />
+          <span class="brand-text">${t('بصمة | Basma Summit', 'Basma Summit | بصمة')}</span>
         </a>
 
-        <button class="mobile-toggle" type="button" aria-expanded="false" aria-label="فتح القائمة" data-mobile-toggle>
+        <button class="mobile-toggle" type="button" aria-expanded="false" aria-label="${t('فتح القائمة', 'Open menu')}" data-mobile-toggle>
           ☰
         </button>
 
-        <nav class="nav-links" aria-label="التنقل الرئيسي" data-nav-links>
+        <nav class="nav-links" aria-label="${t('التنقل الرئيسي', 'Primary navigation')}" data-nav-links>
           ${navLinks}
         </nav>
 
         <div class="nav-tools">
-          <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="تفعيل الوضع الفاتح" title="الوضع الفاتح">
+          <a
+            class="icon-btn lang-toggle"
+            href="${alternateLanguageHref()}"
+            aria-label="${language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}"
+            title="${language === 'ar' ? 'English' : 'العربية'}"
+            data-lang-toggle
+          >
+            <span class="lang-toggle-label">${language === 'ar' ? 'EN' : 'AR'}</span>
+          </a>
+
+          <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="${t('تفعيل الوضع الفاتح', 'Enable light mode')}" title="${t('الوضع الفاتح', 'Light mode')}">
             <span class="theme-toggle-icon" aria-hidden="true">☀</span>
           </button>
 
           <div class="nav-cta">
-            <a class="btn btn-ghost" href="tickets.html">استكشف التذاكر</a>
-            <a class="btn btn-secondary" href="sponsors.html">كن راعياً</a>
+            <a class="btn btn-ghost" href="${localizedHref('tickets')}">${t('التذاكر', 'Tickets')}</a>
+            <a class="btn btn-secondary" href="${localizedHref('contact')}">${t('شارك معنا', 'Join Us')}</a>
           </div>
         </div>
       </div>
@@ -159,48 +251,66 @@ function buildFooter() {
   const footerSlot = document.querySelector('[data-site-footer]');
   if (!footerSlot) return;
 
+  const language = currentLanguage();
+
+  const quickLinks = primaryPages
+    .map((page) => {
+      const href = language === 'en' ? page.hrefEn : page.hrefAr;
+      const label = language === 'en' ? page.labelEn : page.labelAr;
+      return `<a href="${href}">${label}</a>`;
+    })
+    .join('');
+
+  const supportLinks = secondaryPages
+    .map((page) => {
+      const href = page.hrefAr;
+      const label = language === 'en' ? page.labelEn : page.labelAr;
+      return `<a href="${href}">${label}</a>`;
+    })
+    .join('');
+
   footerSlot.innerHTML = `
     <footer class="site-footer" role="contentinfo">
       <div class="container">
         <div class="footer-grid">
           <div class="stack">
-            <h3 class="footer-title">Basma — Women Future Cities Summit & Awards</h3>
+            <div class="footer-brand">
+              <img class="footer-logo" src="${BRAND_LOGO_SRC}" alt="${t('شعار بصمة', 'Basma logo')}" width="44" height="61" loading="lazy" decoding="async" />
+              <h3 class="footer-title">${t('بصمة — قمة وجوائز نساء مدن المستقبل', 'Basma — Women Future Cities Summit & Awards')}</h3>
+            </div>
             <p>
-              منصة إقليمية تقودها C3 (Communities Connect Cities) لتسريع المشاركة النسائية في تصميم مدن
-              أكثر ذكاءً وشمولاً واستدامة.
+              ${t(
+                'منصة استراتيجية تحت مظلة C3 تعكس حصاد عام كامل من الإنجازات الملموسة في مسيرة بناء مدن المستقبل، وتحتفي بالدور المحوري للمرأة في قيادة التغيير والابتكار.',
+                'A strategic platform under C3 celebrating a full year of measurable progress in future city building and spotlighting women leading change and innovation.'
+              )}
             </p>
-            <div class="badge-row" aria-label="الجهات المؤسسة">
+            <div class="badge-row" aria-label="${t('الجهات المرجعية', 'Reference entities')}">
               <span class="badge">C3</span>
               <span class="badge">Women Future Cities</span>
-              <span class="badge">Global Summit Standard</span>
+              <span class="badge">cccities.net</span>
             </div>
           </div>
 
           <div>
-            <h3 class="footer-title">روابط سريعة</h3>
+            <h3 class="footer-title">${t('روابط رئيسية', 'Main Pages')}</h3>
             <div class="footer-links">
-              <a href="about.html">عن بصمة</a>
-              <a href="archive.html">أرشيف بصمة 1</a>
-              <a href="agenda.html">الأجندة الكاملة</a>
-              <a href="awards.html">الجوائز</a>
-              <a href="tickets.html">التذاكر</a>
+              ${quickLinks}
             </div>
           </div>
 
           <div>
-            <h3 class="footer-title">للتواصل والشراكات</h3>
+            <h3 class="footer-title">${t('روابط داعمة', 'Supporting Pages')}</h3>
             <div class="footer-links">
-              <a href="mailto:partnerships@basmasummit.com">partnerships@basmasummit.com</a>
-              <a href="mailto:info@basmasummit.com">info@basmasummit.com</a>
-              <a href="tel:+96800000000">+968 0000 0000</a>
-              <a href="contact.html">نموذج التواصل</a>
+              ${supportLinks}
+              <a href="mailto:info@cccities.net">info@cccities.net</a>
+              <a href="tel:+96822000000">+968 2200 0000</a>
             </div>
           </div>
         </div>
 
         <div class="footer-meta">
-          <span>© 2026 Basma Summit. All rights reserved.</span>
-          <span>Designed for a global, future-focused audience.</span>
+          <span>© 2026 Basma Summit</span>
+          <span>${t('النسخة الرسمية عبر', 'Official domain:')} <a href="https://cccities.net" target="_blank" rel="noopener">cccities.net</a></span>
         </div>
       </div>
     </footer>
@@ -283,7 +393,7 @@ function ensureSpeakerModal() {
     <div id="speaker-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="speaker-title">
       <div class="modal-backdrop" data-close-modal></div>
       <div class="modal-panel">
-        <button type="button" class="icon-btn modal-close" data-close-modal aria-label="إغلاق">✕</button>
+        <button type="button" class="icon-btn modal-close" data-close-modal aria-label="${t('إغلاق', 'Close')}">✕</button>
         <div class="modal-content" id="speaker-modal-content"></div>
       </div>
     </div>
@@ -322,7 +432,7 @@ function activateSpeakerModal() {
       <div class="tag-row">
         ${topics.map((topic) => `<span class="tag">${topic}</span>`).join('')}
       </div>
-      <a class="btn btn-secondary" href="agenda.html">عرض الجلسات ذات الصلة</a>
+      <a class="btn btn-secondary" href="${localizedHref('events')}">${t('عرض الجلسات ذات الصلة', 'View Related Sessions')}</a>
     `;
 
     modal.setAttribute('aria-hidden', 'false');
@@ -424,10 +534,10 @@ function ensureLightbox() {
 
   const wrapper = document.createElement('div');
   wrapper.innerHTML = `
-    <div id="gallery-lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="معرض الصور">
+    <div id="gallery-lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="${t('معرض الصور', 'Image gallery')}">
       <div class="lightbox-backdrop" data-close-lightbox></div>
       <div class="lightbox-panel">
-        <button type="button" class="icon-btn lightbox-close" data-close-lightbox aria-label="إغلاق">✕</button>
+        <button type="button" class="icon-btn lightbox-close" data-close-lightbox aria-label="${t('إغلاق', 'Close')}">✕</button>
         <img id="lightbox-image" src="" alt="" />
         <p id="lightbox-caption" style="margin-top: 0.8rem;"></p>
       </div>
@@ -522,6 +632,8 @@ function activateAnchorScroll() {
 
 function init() {
   applyTheme(getPreferredTheme());
+  applyLanguageFromPage();
+  ensureBrandAssets();
   buildHeader();
   initThemeToggle();
   activateNavState();
