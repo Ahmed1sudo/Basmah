@@ -1,59 +1,78 @@
-# Basma — Women Future Cities Summit & Awards
+# Basma Figma Handoff (Ready-to-Build)
 
-Premium, RTL-first, multi-page event website built as a high-profile summit and awards platform.
+This folder provides a Figma-ready handoff package for the **Basma — Women Future Cities Summit & Awards** website.
 
-## Included Deliverables
+## 1) Import Tokens
 
-1. Design system implementation in code
-- [`design-system.html`](./design-system.html)
-- Global style tokens in [`assets/css/styles.css`](./assets/css/styles.css)
+1. Open Figma + Tokens Studio plugin.
+2. Import [`tokens.json`](./tokens.json).
+3. Apply `global` + `semantic` sets.
+4. Use RTL frame direction for Arabic layouts.
 
-2. Full UI screens (desktop + mobile responsive)
-- Home: [`index.html`](./index.html)
-- About: [`about.html`](./about.html)
-- Basma 1 Archive: [`archive.html`](./archive.html)
-- Agenda: [`agenda.html`](./agenda.html)
-- Speakers: [`speakers.html`](./speakers.html)
-- Awards: [`awards.html`](./awards.html)
-- Tickets: [`tickets.html`](./tickets.html)
-- Sponsors: [`sponsors.html`](./sponsors.html)
-- Gallery: [`gallery.html`](./gallery.html)
-- Team: [`team.html`](./team.html)
-- Contact: [`contact.html`](./contact.html)
-- FAQ: [`faq.html`](./faq.html)
+## 2) File Structure (Desktop + Mobile)
 
-3. Front-end interactions
-- Smooth scrolling
-- Reveal animations
-- Animated counters
-- Agenda filtering
-- Speaker modal
-- Ticket tier selection highlight
-- Sponsor carousel
-- Gallery lightbox
-- FAQ accordion
+Create pages in Figma:
 
-4. Figma-ready handoff
-- Token file: [`figma/tokens.json`](./figma/tokens.json)
-- Screen/spec guide: [`figma/README.md`](./figma/README.md)
+1. `00 Foundations`
+2. `01 Components`
+3. `02 Desktop Screens`
+4. `03 Mobile Screens`
+5. `04 Prototype Flows`
 
-5. Components breakdown
-- [`COMPONENTS.md`](./COMPONENTS.md)
+## 3) Required Screen Frames
 
-## Accessibility and SEO
+Desktop frame size: **1440 x Auto**
+Mobile frame size: **390 x Auto**
 
-- RTL support by default (`dir="rtl"`)
-- Keyboard focus states and skip link
-- Reduced-motion support
-- Semantic landmarks and heading structure
-- OpenGraph tags and JSON-LD (`Event` + `Organization`) on home page
+Create both desktop and mobile for each:
 
-## Run Locally
+1. Home
+2. About Basma
+3. Basma 1 Archive
+4. Agenda / Sessions
+5. Speakers
+6. Awards
+7. Tickets
+8. Sponsors
+9. Gallery / Media
+10. Team / Organization
+11. Contact
+12. FAQ
 
-Because this is clean HTML/CSS/JS, open `index.html` directly or run a lightweight local server:
+## 4) Components to Build in `01 Components`
 
-```bash
-python3 -m http.server 8080
-```
+1. Navigation (sticky desktop + mobile overlay)
+2. Buttons: Primary / Secondary / Ghost
+3. Cards: Speaker / Award / Ticket / Session / Partner
+4. Tabs / Filter chips (agenda)
+5. Modal (speaker details)
+6. Carousel (sponsor logos)
+7. Gallery lightbox
+8. Footer (3-column + meta row)
 
-Then visit `http://localhost:8080`.
+## 5) Layout Rules
+
+1. 12-column desktop grid, 24px gutters, 96px outer margins.
+2. 4-column mobile grid, 16px gutters, 20px margins.
+3. Vertical rhythm 64px-144px between major sections.
+4. Use generous white space to preserve luxury pacing.
+
+## 6) Motion Specs
+
+1. Section reveal: 600ms, ease-out, 20px translateY.
+2. Counter animation: ~1400ms cubic ease.
+3. Carousel auto-advance: 3.5s interval.
+4. Hover lift on cards: translateY(-4px) + subtle shadow.
+5. Respect reduced-motion variant in prototype.
+
+## 7) Accessibility Rules
+
+1. Minimum contrast target: WCAG AA.
+2. Focus ring token: teal accent stroke.
+3. Keyboard traversable interactive components.
+4. Every image should have alt-text in handoff notes.
+
+## 8) Content Tone
+
+Use premium, modern, future-facing language with emotional confidence.
+Avoid generic conference language and avoid clichés.
