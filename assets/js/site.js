@@ -27,7 +27,21 @@ const secondaryPages = [
 
 const bilingualBases = new Set(['index', 'about', 'services', 'events', 'media-center', 'tickets', 'team', 'contact']);
 const THEME_STORAGE_KEY = 'basma-theme';
-const BRAND_LOGO_SRC = 'assets/img/basma-mark.png';
+const BRAND_LOGO_ASSET_VERSION = '20260411';
+const BRAND_LOGO_DARK_FILE = 'assets/img/fingerprint-dark.png';
+const BRAND_LOGO_WHITE_FILE = 'assets/img/fingerprint-white.png';
+
+function brandAsset(src) {
+  return `${src}?v=${BRAND_LOGO_ASSET_VERSION}`;
+}
+
+const BRAND_LOGO_NAV_SRC = brandAsset(BRAND_LOGO_DARK_FILE);
+const BRAND_LOGO_NAV_DARK_THEME_SRC = brandAsset(BRAND_LOGO_WHITE_FILE);
+const BRAND_LOGO_NAV_LIGHT_THEME_SRC = brandAsset(BRAND_LOGO_DARK_FILE);
+const BRAND_LOGO_DARK_THEME_SRC = brandAsset(BRAND_LOGO_WHITE_FILE);
+const BRAND_LOGO_LIGHT_THEME_SRC = brandAsset(BRAND_LOGO_DARK_FILE);
+const BRAND_FAVICON_DARK_THEME_SRC = brandAsset(BRAND_LOGO_WHITE_FILE);
+const BRAND_FAVICON_LIGHT_THEME_SRC = brandAsset(BRAND_LOGO_DARK_FILE);
 
 function currentFile() {
   const path = window.location.pathname.split('/').pop();
@@ -93,6 +107,42 @@ function applyTheme(theme) {
   return safeTheme;
 }
 
+function currentTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
+function brandLogoSrcByTheme(theme = currentTheme()) {
+  return theme === 'light' ? BRAND_LOGO_LIGHT_THEME_SRC : BRAND_LOGO_DARK_THEME_SRC;
+}
+
+function brandNavbarLogoSrcByTheme(theme = currentTheme()) {
+  return theme === 'light' ? BRAND_LOGO_NAV_LIGHT_THEME_SRC : BRAND_LOGO_NAV_DARK_THEME_SRC;
+}
+
+function brandFaviconSrcByTheme(theme = currentTheme()) {
+  return theme === 'light' ? BRAND_FAVICON_LIGHT_THEME_SRC : BRAND_FAVICON_DARK_THEME_SRC;
+}
+
+function syncBrandLogos() {
+  // Navbar logo follows theme for clear visibility.
+  const navSrc = brandNavbarLogoSrcByTheme();
+  document.querySelectorAll('img[data-brand-role="navbar"], .brand > .brand-logo').forEach((logo) => {
+    if (logo.getAttribute('src') !== navSrc) {
+      logo.setAttribute('src', navSrc);
+    }
+  });
+
+  // In-page logos must follow the active theme.
+  const contentSrc = brandLogoSrcByTheme();
+  document
+    .querySelectorAll('img[data-theme-content-logo], .footer-logo, .modal-brand-logo, img[data-inpage-logo], img[data-brand-role="content"]')
+    .forEach((logo) => {
+      if (logo.getAttribute('src') !== contentSrc) {
+        logo.setAttribute('src', contentSrc);
+      }
+    });
+}
+
 function persistTheme(theme) {
   try {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme);
@@ -111,6 +161,7 @@ function applyLanguageFromPage() {
 function ensureBrandAssets() {
   const head = document.head;
   if (!head) return;
+  const faviconSrc = brandFaviconSrcByTheme();
 
   const links = [
     { rel: 'icon', type: 'image/png' },
@@ -126,7 +177,7 @@ function ensureBrandAssets() {
       head.appendChild(link);
     }
 
-    link.href = BRAND_LOGO_SRC;
+    link.href = faviconSrc;
     if (type) link.type = type;
   });
 }
@@ -165,7 +216,15 @@ function buildHeader() {
     <header class="top-nav" role="banner">
       <div class="container nav-inner">
         <a class="brand" href="${localizedHref('index')}" aria-label="${t('العودة للصفحة الرئيسية', 'Back to homepage')}">
-          <img class="brand-logo" src="${BRAND_LOGO_SRC}" alt="${t('شعار بصمة', 'Basma logo')}" width="30" height="42" decoding="async" />
+          <img
+            class="brand-logo"
+            data-brand-role="navbar"
+            src="${brandNavbarLogoSrcByTheme()}"
+            alt="${t('شعار بصمة', 'Basma logo')}"
+            width="30"
+            height="42"
+            decoding="async"
+          />
           <span class="brand-text">${t('بصمة | Basma Summit', 'Basma Summit | بصمة')}</span>
         </a>
 
@@ -231,6 +290,8 @@ function initThemeToggle() {
     const next = current === 'light' ? 'dark' : 'light';
     const applied = applyTheme(next);
     persistTheme(applied);
+    ensureBrandAssets();
+    syncBrandLogos();
     syncThemeToggleButton();
   });
 }
@@ -275,7 +336,17 @@ function buildFooter() {
         <div class="footer-grid">
           <div class="stack">
             <div class="footer-brand">
-              <img class="footer-logo" src="${BRAND_LOGO_SRC}" alt="${t('شعار بصمة', 'Basma logo')}" width="44" height="61" loading="lazy" decoding="async" />
+              <img
+                class="footer-logo"
+                data-brand-role="content"
+                data-theme-content-logo
+                src="${brandLogoSrcByTheme()}"
+                alt="${t('شعار بصمة', 'Basma logo')}"
+                width="44"
+                height="61"
+                loading="lazy"
+                decoding="async"
+              />
               <h3 class="footer-title">${t('بصمة — قمة وجوائز نساء مدن المستقبل', 'Basma — Women Future Cities Summit & Awards')}</h3>
             </div>
             <p>
@@ -393,6 +464,9 @@ function ensureSpeakerModal() {
     <div id="speaker-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="speaker-title">
       <div class="modal-backdrop" data-close-modal></div>
       <div class="modal-panel">
+        <div class="modal-brand" aria-hidden="true">
+          <img class="modal-brand-logo" data-brand-role="content" data-theme-content-logo src="${brandLogoSrcByTheme()}" alt="" width="16" height="23" decoding="async" />
+        </div>
         <button type="button" class="icon-btn modal-close" data-close-modal aria-label="${t('إغلاق', 'Close')}">✕</button>
         <div class="modal-content" id="speaker-modal-content"></div>
       </div>
@@ -419,6 +493,7 @@ function activateSpeakerModal() {
   };
 
   const openModal = (card) => {
+    syncBrandLogos();
     lastActive = card;
     const name = card.dataset.name || '';
     const role = card.dataset.role || '';
@@ -641,6 +716,7 @@ function init() {
   activateReveal();
   activateCounters();
   activateSpeakerModal();
+  syncBrandLogos();
   activateAgendaFilters();
   activateTickets();
   activateCarousel();
@@ -650,3 +726,7 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('pageshow', () => {
+  ensureBrandAssets();
+  syncBrandLogos();
+});

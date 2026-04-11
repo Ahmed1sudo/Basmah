@@ -786,6 +786,7 @@ body::after,
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  opacity: 1;
 }
 
 [data-theme='light'] .footer-logo {
@@ -886,6 +887,20 @@ body::after,
   min-height: calc(100vh - var(--nav-height));
   display: grid;
   align-items: center;
+  isolation: isolate;
+}
+
+[data-theme='light'] .hero::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 8%;
+  inset-inline-end: clamp(-1.2rem, -1vw, -0.35rem);
+  width: clamp(280px, 34vw, 500px);
+  aspect-ratio: 360 / 498;
+  background: url('../img/fingerprint-dark.png?v=20260411') center / contain no-repeat;
+  opacity: 0.032;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .hero-grid {
@@ -893,6 +908,8 @@ body::after,
   gap: var(--space-10);
   grid-template-columns: 1.3fr minmax(280px, 0.85fr);
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-kicker {
@@ -1686,6 +1703,25 @@ textarea {
   inset-inline-end: 12px;
 }
 
+.modal-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.35rem;
+}
+
+.modal-brand-logo {
+  display: block;
+  width: auto;
+  height: 24px;
+  object-fit: contain;
+  opacity: 1;
+}
+
+[data-theme='light'] .modal-brand-logo {
+  opacity: 1;
+}
+
 .modal-content {
   display: grid;
   gap: var(--space-4);
@@ -1813,7 +1849,7 @@ textarea {
   }
 
   .brand-logo {
-    height: 34px;
+    height: 36px;
   }
 
   .brand-text {
@@ -1882,6 +1918,13 @@ textarea {
   .hero {
     min-height: unset;
     padding-top: var(--space-10);
+  }
+
+  [data-theme='light'] .hero::after {
+    inset-block-start: 12%;
+    inset-inline-end: -1.8rem;
+    width: clamp(180px, 56vw, 260px);
+    opacity: 0.024;
   }
 
   .hero-grid,
