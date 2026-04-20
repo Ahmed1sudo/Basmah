@@ -15,16 +15,6 @@ const primaryPages = [
   { key: 'contact', hrefAr: 'contact.html', hrefEn: 'contact-en.html', labelAr: 'اتصل بنا', labelEn: 'Contact Us' }
 ];
 
-const secondaryPages = [
-  { key: 'agenda', hrefAr: 'agenda.html', labelAr: 'الأجندة', labelEn: 'Agenda' },
-  { key: 'speakers', hrefAr: 'speakers.html', labelAr: 'المتحدثات', labelEn: 'Speakers' },
-  { key: 'awards', hrefAr: 'awards.html', labelAr: 'الجوائز', labelEn: 'Awards' },
-  { key: 'sponsors', hrefAr: 'sponsors.html', labelAr: 'الرعاة', labelEn: 'Sponsors' },
-  { key: 'archive', hrefAr: 'archive.html', labelAr: 'أرشيف بصمة 1', labelEn: 'Basma 1 Archive' },
-  { key: 'gallery', hrefAr: 'gallery.html', labelAr: 'المعرض', labelEn: 'Gallery' },
-  { key: 'faq', hrefAr: 'faq.html', labelAr: 'الأسئلة الشائعة', labelEn: 'FAQ' }
-];
-
 const bilingualBases = new Set(['index', 'about', 'services', 'events', 'media-center', 'tickets', 'team', 'contact']);
 const THEME_STORAGE_KEY = 'basma-theme';
 const BRAND_LOGO_ASSET_VERSION = '20260411';
@@ -42,6 +32,13 @@ const BRAND_LOGO_DARK_THEME_SRC = brandAsset(BRAND_LOGO_WHITE_FILE);
 const BRAND_LOGO_LIGHT_THEME_SRC = brandAsset(BRAND_LOGO_DARK_FILE);
 const BRAND_FAVICON_DARK_THEME_SRC = brandAsset(BRAND_LOGO_WHITE_FILE);
 const BRAND_FAVICON_LIGHT_THEME_SRC = brandAsset(BRAND_LOGO_DARK_FILE);
+const SOCIAL_ICON_MARKUP = {
+  instagram:
+    '<svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="17.3" cy="6.8" r="1.1" fill="currentColor"/></svg>',
+  linkedin:
+    '<svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="3.6" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="8.05" cy="8.7" r="1.15" fill="currentColor"/><path d="M6.95 11.2V16.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M11.2 16.8V11.2M11.2 13.3C11.2 11.9 12.25 11.1 13.35 11.1C14.85 11.1 16 12.03 16 13.9V16.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  x: '<svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5.05 4.3H8.9L12.9 9.56L17.22 4.3H19.3L13.9 10.9L19.95 19.7H16.1L11.92 13.7L6.96 19.7H4.88L10.91 12.38L5.05 4.3Z" fill="currentColor"/></svg>'
+};
 
 function currentFile() {
   const path = window.location.pathname.split('/').pop();
@@ -123,24 +120,26 @@ function brandFaviconSrcByTheme(theme = currentTheme()) {
   return theme === 'light' ? BRAND_FAVICON_LIGHT_THEME_SRC : BRAND_FAVICON_DARK_THEME_SRC;
 }
 
-function syncBrandLogos() {
-  // Navbar logo follows theme for clear visibility.
-  const navSrc = brandNavbarLogoSrcByTheme();
-  document.querySelectorAll('img[data-brand-role="navbar"], .brand > .brand-logo').forEach((logo) => {
-    if (logo.getAttribute('src') !== navSrc) {
-      logo.setAttribute('src', navSrc);
-    }
-  });
+const logoCache = { nav: null, content: null };
 
-  // In-page logos must follow the active theme.
-  const contentSrc = brandLogoSrcByTheme();
-  document
-    .querySelectorAll('img[data-theme-content-logo], .footer-logo, .modal-brand-logo, img[data-inpage-logo], img[data-brand-role="content"]')
-    .forEach((logo) => {
-      if (logo.getAttribute('src') !== contentSrc) {
-        logo.setAttribute('src', contentSrc);
-      }
+function syncBrandLogos() {
+  const navSrc = brandNavbarLogoSrcByTheme();
+  if (logoCache.nav !== navSrc) {
+    logoCache.nav = navSrc;
+    document.querySelectorAll('img[data-brand-role="navbar"], .brand > .brand-logo').forEach((logo) => {
+      logo.src = navSrc;
     });
+  }
+
+  const contentSrc = brandLogoSrcByTheme();
+  if (logoCache.content !== contentSrc) {
+    logoCache.content = contentSrc;
+    document
+      .querySelectorAll('img[data-theme-content-logo], .footer-logo, .modal-brand-logo, img[data-inpage-logo], img[data-brand-role="content"]')
+      .forEach((logo) => {
+        logo.src = contentSrc;
+      });
+  }
 }
 
 function persistTheme(theme) {
@@ -163,23 +162,23 @@ function ensureBrandAssets() {
   if (!head) return;
   const faviconSrc = brandFaviconSrcByTheme();
 
-  const links = [
-    { rel: 'icon', type: 'image/png' },
-    { rel: 'shortcut icon', type: 'image/png' },
-    { rel: 'apple-touch-icon' }
-  ];
+  const linkTypes = ['icon', 'shortcut icon', 'apple-touch-icon'];
+  let existing = head.querySelector('link[rel="icon"]');
 
-  links.forEach(({ rel, type }) => {
-    let link = head.querySelector(`link[rel="${rel}"]`);
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = rel;
-      head.appendChild(link);
-    }
+  if (existing && existing.href.includes('fingerprint')) {
+    existing.href = faviconSrc;
+    return;
+  }
 
+  const fragment = document.createDocumentFragment();
+  linkTypes.forEach((rel) => {
+    const link = document.createElement('link');
+    link.rel = rel;
+    link.type = 'image/png';
     link.href = faviconSrc;
-    if (type) link.type = type;
+    fragment.appendChild(link);
   });
+  head.appendChild(fragment);
 }
 
 function syncThemeToggleButton() {
@@ -195,6 +194,72 @@ function syncThemeToggleButton() {
 
   button.setAttribute('aria-label', isLight ? t('تفعيل الوضع الداكن', 'Enable dark mode') : t('تفعيل الوضع الفاتح', 'Enable light mode'));
   button.setAttribute('title', isLight ? t('الوضع الداكن', 'Dark mode') : t('الوضع الفاتح', 'Light mode'));
+}
+
+function refreshThemeBranding() {
+  ensureBrandAssets();
+  syncBrandLogos();
+  syncThemeToggleButton();
+}
+
+function getFocusableElements(container) {
+  if (!container) return [];
+
+  const selector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  return Array.from(container.querySelectorAll(selector)).filter((element) => {
+    if (element.getAttribute('aria-hidden') === 'true') return false;
+    if (element.closest('[hidden], [aria-hidden="true"]')) return false;
+    return true;
+  });
+}
+
+function trapFocusInside(container, event) {
+  if (event.key !== 'Tab') return;
+
+  const focusable = getFocusableElements(container);
+  if (!focusable.length) {
+    event.preventDefault();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const activeElement = document.activeElement;
+
+  if (event.shiftKey) {
+    if (activeElement === first || !container.contains(activeElement)) {
+      event.preventDefault();
+      last.focus();
+    }
+    return;
+  }
+
+  if (activeElement === last || !container.contains(activeElement)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function focusTargetElement(target) {
+  if (!(target instanceof HTMLElement)) return;
+
+  const hadTabIndex = target.hasAttribute('tabindex');
+  if (!hadTabIndex) {
+    target.setAttribute('tabindex', '-1');
+  }
+
+  target.focus({ preventScroll: true });
+
+  if (!hadTabIndex) {
+    target.addEventListener(
+      'blur',
+      () => {
+        target.removeAttribute('tabindex');
+      },
+      { once: true }
+    );
+  }
 }
 
 function buildHeader() {
@@ -214,46 +279,48 @@ function buildHeader() {
   headerSlot.innerHTML = `
     <a class="skip-link" href="#main-content">${t('تخطي إلى المحتوى', 'Skip to content')}</a>
     <header class="top-nav" role="banner">
-      <div class="container nav-inner">
-        <a class="brand" href="${localizedHref('index')}" aria-label="${t('العودة للصفحة الرئيسية', 'Back to homepage')}">
-          <img
-            class="brand-logo"
-            data-brand-role="navbar"
-            src="${brandNavbarLogoSrcByTheme()}"
-            alt="${t('شعار بصمة', 'Basma logo')}"
-            width="30"
-            height="42"
-            decoding="async"
-          />
-          <span class="brand-text">${t('بصمة | Basma Summit', 'Basma Summit | بصمة')}</span>
-        </a>
-
-        <button class="mobile-toggle" type="button" aria-expanded="false" aria-label="${t('فتح القائمة', 'Open menu')}" data-mobile-toggle>
-          ☰
-        </button>
-
-        <nav class="nav-links" aria-label="${t('التنقل الرئيسي', 'Primary navigation')}" data-nav-links>
-          ${navLinks}
-        </nav>
-
-        <div class="nav-tools">
-          <a
-            class="icon-btn lang-toggle"
-            href="${alternateLanguageHref()}"
-            aria-label="${language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}"
-            title="${language === 'ar' ? 'English' : 'العربية'}"
-            data-lang-toggle
-          >
-            <span class="lang-toggle-label">${language === 'ar' ? 'EN' : 'AR'}</span>
+      <div class="container">
+        <div class="nav-inner">
+          <a class="brand" href="${localizedHref('index')}" aria-label="${t('العودة للصفحة الرئيسية', 'Back to homepage')}">
+            <img
+              class="brand-logo"
+              data-brand-role="navbar"
+              src="${brandNavbarLogoSrcByTheme()}"
+              alt="${t('شعار بصمة', 'Basma logo')}"
+              width="30"
+              height="42"
+              decoding="async"
+            />
+            <span class="brand-text">${t('بصمة | Basma Summit', 'Basma Summit | بصمة')}</span>
           </a>
 
-          <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="${t('تفعيل الوضع الفاتح', 'Enable light mode')}" title="${t('الوضع الفاتح', 'Light mode')}">
-            <span class="theme-toggle-icon" aria-hidden="true">☀</span>
+          <button class="mobile-toggle" type="button" aria-expanded="false" aria-label="${t('فتح القائمة', 'Open menu')}" data-mobile-toggle>
+            ☰
           </button>
 
-          <div class="nav-cta">
-            <a class="btn btn-ghost" href="${localizedHref('tickets')}">${t('التذاكر', 'Tickets')}</a>
-            <a class="btn btn-secondary" href="${localizedHref('contact')}">${t('شارك معنا', 'Join Us')}</a>
+          <nav class="nav-links" aria-label="${t('التنقل الرئيسي', 'Primary navigation')}" data-nav-links>
+            ${navLinks}
+          </nav>
+
+          <div class="nav-tools">
+            <a
+              class="icon-btn lang-toggle"
+              href="${alternateLanguageHref()}"
+              aria-label="${language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}"
+              title="${language === 'ar' ? 'English' : 'العربية'}"
+              data-lang-toggle
+            >
+              <span class="lang-toggle-label">${language === 'ar' ? 'EN' : 'AR'}</span>
+            </a>
+
+            <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="${t('تفعيل الوضع الفاتح', 'Enable light mode')}" title="${t('الوضع الفاتح', 'Light mode')}">
+              <span class="theme-toggle-icon" aria-hidden="true">☀</span>
+            </button>
+
+            <div class="nav-cta">
+              <a class="btn btn-ghost" href="${localizedHref('tickets')}">${t('التذاكر', 'Tickets')}</a>
+              <a class="btn btn-secondary" href="${localizedHref('contact')}">${t('شارك معنا', 'Join Us')}</a>
+            </div>
           </div>
         </div>
       </div>
@@ -263,19 +330,61 @@ function buildHeader() {
   const toggle = headerSlot.querySelector('[data-mobile-toggle]');
   const links = headerSlot.querySelector('[data-nav-links]');
   if (toggle && links) {
-    toggle.addEventListener('click', () => {
-      const isOpen = links.classList.toggle('open');
+    const openMenuLabel = t('فتح القائمة', 'Open menu');
+    const closeMenuLabel = t('إغلاق القائمة', 'Close menu');
+    const navId = links.id || `site-nav-links-${language}`;
+    links.id = navId;
+    toggle.setAttribute('aria-controls', navId);
+
+    const setMenuState = (isOpen) => {
+      links.classList.toggle('open', isOpen);
       toggle.setAttribute('aria-expanded', String(isOpen));
+      toggle.setAttribute('aria-label', isOpen ? closeMenuLabel : openMenuLabel);
+      toggle.setAttribute('title', isOpen ? closeMenuLabel : openMenuLabel);
       toggle.textContent = isOpen ? '✕' : '☰';
+    };
+
+    const closeMenu = () => {
+      setMenuState(false);
+    };
+
+    setMenuState(false);
+
+    toggle.addEventListener('click', () => {
+      setMenuState(!links.classList.contains('open'));
     });
 
     links.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        links.classList.remove('open');
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.textContent = '☰';
-      });
+      link.addEventListener('click', closeMenu);
     });
+
+    let menuListenersAdded = false;
+    const addMenuListeners = () => {
+      if (menuListenersAdded) return;
+      menuListenersAdded = true;
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && links.classList.contains('open')) {
+          closeMenu();
+          toggle.focus();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!links.classList.contains('open')) return;
+        if (!(target instanceof Element)) return;
+        if (links.contains(target) || toggle.contains(target)) return;
+        closeMenu();
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 992) closeMenu();
+      });
+    };
+
+    toggle.addEventListener('click', addMenuListeners, { once: true });
+    links.addEventListener('click', addMenuListeners, { once: true });
   }
 }
 
@@ -290,9 +399,15 @@ function initThemeToggle() {
     const next = current === 'light' ? 'dark' : 'light';
     const applied = applyTheme(next);
     persistTheme(applied);
-    ensureBrandAssets();
-    syncBrandLogos();
-    syncThemeToggleButton();
+    refreshThemeBranding();
+  });
+}
+
+function activateThemeSync() {
+  window.addEventListener('storage', (event) => {
+    if (event.key && event.key !== THEME_STORAGE_KEY) return;
+    applyTheme(getPreferredTheme());
+    refreshThemeBranding();
   });
 }
 
@@ -322,11 +437,34 @@ function buildFooter() {
     })
     .join('');
 
-  const supportLinks = secondaryPages
-    .map((page) => {
-      const href = page.hrefAr;
-      const label = language === 'en' ? page.labelEn : page.labelAr;
-      return `<a href="${href}">${label}</a>`;
+  const footerSocialLinks = [
+    {
+      label: 'Instagram',
+      icon: 'instagram',
+      href: 'https://www.instagram.com/wfcsummit/',
+      ariaAr: 'بصمة على Instagram',
+      ariaEn: 'Basma Summit on Instagram'
+    },
+    {
+      label: 'LinkedIn',
+      icon: 'linkedin',
+      href: 'https://www.linkedin.com/company/women-future-cities/',
+      ariaAr: 'Women Future Cities على LinkedIn',
+      ariaEn: 'Women Future Cities on LinkedIn'
+    },
+    {
+      label: 'X',
+      icon: 'x',
+      href: 'https://x.com/wfcglobal',
+      ariaAr: 'Women Future Cities على X',
+      ariaEn: 'Women Future Cities on X'
+    }
+  ];
+
+  const socialLinks = footerSocialLinks
+    .map((link) => {
+      const ariaLabel = language === 'en' ? link.ariaEn : link.ariaAr;
+      return `<a class="footer-social-chip" href="${link.href}" target="_blank" rel="noopener noreferrer" aria-label="${ariaLabel}" title="${link.label}">${SOCIAL_ICON_MARKUP[link.icon]}<span class="sr-only">${link.label}</span></a>`;
     })
     .join('');
 
@@ -334,7 +472,7 @@ function buildFooter() {
     <footer class="site-footer" role="contentinfo">
       <div class="container">
         <div class="footer-grid">
-          <div class="stack">
+          <div class="footer-col footer-col-brand stack">
             <div class="footer-brand">
               <img
                 class="footer-logo"
@@ -362,19 +500,32 @@ function buildFooter() {
             </div>
           </div>
 
-          <div>
+          <div class="footer-col footer-col-links">
             <h3 class="footer-title">${t('روابط رئيسية', 'Main Pages')}</h3>
             <div class="footer-links">
               ${quickLinks}
             </div>
           </div>
 
-          <div>
-            <h3 class="footer-title">${t('روابط داعمة', 'Supporting Pages')}</h3>
-            <div class="footer-links">
-              ${supportLinks}
-              <a href="mailto:info@cccities.net">info@cccities.net</a>
-              <a href="tel:+96822000000">+968 2200 0000</a>
+          <div class="footer-col footer-col-contact">
+            <h3 class="footer-title">${t('التواصل', 'Contact')}</h3>
+            <div class="footer-contact-card">
+              <div class="footer-contact">
+                <div class="footer-contact-item">
+                  <span class="footer-contact-label">${t('البريد الإلكتروني', 'Email')}</span>
+                  <a class="footer-contact-link" href="mailto:info@cccities.net">info@cccities.net</a>
+                </div>
+                <div class="footer-contact-item">
+                  <span class="footer-contact-label">${t('الهاتف', 'Phone')}</span>
+                  <a class="footer-contact-link" href="tel:77324367">77324367</a>
+                </div>
+                <div class="footer-contact-item">
+                  <span class="footer-contact-label">${t('تابعنا', 'Follow Us')}</span>
+                  <div class="footer-contact-social" dir="ltr" aria-label="${t('قنوات التواصل الاجتماعي', 'Social media channels')}">
+                    ${socialLinks}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -487,6 +638,7 @@ function activateSpeakerModal() {
   let lastActive = null;
 
   const closeModal = () => {
+    if (modal.getAttribute('aria-hidden') === 'true') return;
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     if (lastActive) lastActive.focus();
@@ -512,11 +664,14 @@ function activateSpeakerModal() {
 
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    focusable?.focus();
+    const focusable = getFocusableElements(modal);
+    focusable[0]?.focus();
   };
 
   triggerCards.forEach((card) => {
+    card.setAttribute('aria-haspopup', 'dialog');
+    card.setAttribute('aria-controls', 'speaker-modal');
+
     card.addEventListener('click', () => openModal(card));
     card.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
@@ -529,9 +684,13 @@ function activateSpeakerModal() {
   closeBtns.forEach((btn) => btn.addEventListener('click', closeModal));
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
+    if (modal.getAttribute('aria-hidden') !== 'false') return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
       closeModal();
+      return;
     }
+    trapFocusInside(modal, event);
   });
 }
 
@@ -543,14 +702,26 @@ function activateAgendaFilters() {
   const sessions = document.querySelectorAll('[data-session-track]');
 
   chips.forEach((chip) => {
+    chip.setAttribute('aria-pressed', String(chip.classList.contains('active')));
+  });
+  sessions.forEach((session) => {
+    session.setAttribute('aria-hidden', String(session.hidden));
+  });
+
+  chips.forEach((chip) => {
     chip.addEventListener('click', () => {
-      chips.forEach((btn) => btn.classList.remove('active'));
-      chip.classList.add('active');
+      chips.forEach((btn) => {
+        const isActive = btn === chip;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+      });
+
       const filter = chip.dataset.filter;
 
       sessions.forEach((session) => {
         const matches = filter === 'all' || session.dataset.sessionTrack === filter;
         session.hidden = !matches;
+        session.setAttribute('aria-hidden', String(!matches));
       });
     });
   });
@@ -632,6 +803,7 @@ function activateLightbox() {
   let lastActive = null;
 
   const close = () => {
+    if (lightbox.getAttribute('aria-hidden') === 'true') return;
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     if (lastActive) lastActive.focus();
@@ -647,9 +819,14 @@ function activateLightbox() {
     caption.textContent = item.dataset.caption || img.alt;
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    const focusable = getFocusableElements(lightbox);
+    focusable[0]?.focus();
   };
 
   items.forEach((item) => {
+    item.setAttribute('aria-haspopup', 'dialog');
+    item.setAttribute('aria-controls', 'gallery-lightbox');
+
     item.addEventListener('click', () => open(item));
     item.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
@@ -664,9 +841,13 @@ function activateLightbox() {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && lightbox.getAttribute('aria-hidden') === 'false') {
+    if (lightbox.getAttribute('aria-hidden') !== 'false') return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
       close();
+      return;
     }
+    trapFocusInside(lightbox, event);
   });
 }
 
@@ -693,6 +874,10 @@ function activateFaq() {
 function activateAnchorScroll() {
   document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
     anchor.addEventListener('click', (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+
       const targetId = anchor.getAttribute('href');
       if (!targetId || targetId.length < 2) return;
 
@@ -700,7 +885,13 @@ function activateAnchorScroll() {
       if (!target) return;
 
       event.preventDefault();
-      target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      focusTargetElement(target);
+
+      if (window.history && window.history.pushState && window.location.hash !== targetId) {
+        window.history.pushState(null, '', targetId);
+      }
     });
   });
 }
@@ -711,6 +902,7 @@ function init() {
   ensureBrandAssets();
   buildHeader();
   initThemeToggle();
+  activateThemeSync();
   activateNavState();
   buildFooter();
   activateReveal();
@@ -727,6 +919,6 @@ function init() {
 
 document.addEventListener('DOMContentLoaded', init);
 window.addEventListener('pageshow', () => {
-  ensureBrandAssets();
-  syncBrandLogos();
+  applyTheme(getPreferredTheme());
+  refreshThemeBranding();
 });
